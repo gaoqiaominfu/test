@@ -1,0 +1,252 @@
+--安装
+
+Git是一个分布式版本控制工具，Linux系统下可以使用如下命令安装（这里是树莓派的Raspbian系统）：
+
+?
+1
+sudo apt-get install git-core
+如果是Windows系统， 点这里下载Git的安装包，安装完成后打开Git Bash；
+--基本用法
+使用如下命令配置你的身份，以后提交的时候Git就知道是谁在提交了：
+
+?
+1
+2
+git config --global user.name "xxx"
+git config --global user.email "xxx@xx.com"
+如果要查看配置是否成功只需把命令最后引号部分内容去掉后执行即可；
+
+接下来就可以创建代码仓库了，首先你需要一个项目的文件夹，使用cd命令进入这个目录，使用如下命令创建代码仓库：
+
+?
+1
+git init
+命令执行后会在项目文件夹里生成一个隐藏的.git文件夹用于记录所有的Git操作，可以使用ls -al命令查看；
+
+如果要删除这个仓库，只需删除这个.git文件夹即可；
+
+创建仓库后就可以提交代码了，使用add命令添加然后使用commit命令提交：
+
+?
+1
+2
+3
+4
+5
+6
+# 添加test.txt文件
+git add test.txt
+# 添加test目录
+git add test
+# 直接添加所有目录和文件
+git add .
+
+注意添加时这些目录或文件应该都存在，执行提交命令时会把之前添加过的文件一次性全部提交，然后必须使用-m参数添加描述信息否则视为非法提交：
+
+?
+1
+git commit -m "first commit"
+有时候某个项目中某些目录或文件有可能是自动生成的不需要进行版本控制，Git会检查代码仓库的根目录下是否存在一个.gitignore的文件，如果存在则将文件中每一行指定的文件或目录排除在版本控制之外，每一行可以使用*号的通配符，如果是目录需要以/结尾；
+
+提交之后我们可能会对项目继续编辑，我们可能忘记这一次修改改了哪些地方，Git可以查看距离上次提交修改了哪些内容，查看的方法很简单在项目根目录执行如下命令：
+
+?
+1
+git status
+由于刚才我们已经提交了一次，因此没有任何更改，编辑test.txt文件在最后新增一些内容后保存，再次执行上面的命令，此时会提示modified test.txt；
+
+此时只是知道修改了哪些文件，怎么查看修改的内容呢，使用diff命令：
+
+?
+1
+2
+3
+4
+5
+# 查看所有文件的更改内容
+git diff
+# 查看某个文件的更改内容
+git diff test.txt
+git diff test/test1.txt
+其中减号标识的行是删除的，加号标识的是新增的；
+
+有时我们修改的内容可能有问题，需要回退到上一次提交的状态，那么使用checkout检出命令：
+
+?
+1
+2
+3
+4
+# 回退某个文件到上次提交的状态
+git checkout test/test1.txt
+# 回退某个目录下所有文件到上次提交的状态
+git checkout test/
+但是要注意的是这种撤销方式只适用于还没有添加过的文件，修改test/test1.txt文件，然后添加该文件，再使用回退命令：
+
+?
+1
+2
+git add test/test1.txt
+git checkout test/test1.txt
+此时发现该文件还是修改后的状态没有回退成功，注意如果文件已经添加过且还没有提交则无法回退，需要回退只能先取消添加再回退，使用如下命令：
+
+?
+1
+git reset HEAD test/
+--使用分支
+
+分支是版本控制中非常重要的概念，当一个项目推出了1.0版本后，继续开发出1.1版本，但是有用户反馈1.0版本有个bug，如果继续在1.1版本上修改的话会出现重新发布的1.0版本会带有1.1版本的部分功能，因此需要使用分支，当1.0发现bug时在分支上修改，然后发布新的1.0版本，然后将代码合并到主干线上，这样两个分支都修复了这个bug了；
+
+查看一个版本库中有哪些分支，使用如下命令：
+
+?
+1
+git branch -a
+此时看到只有一个master主分支存在，接下来创建一个version1.0的分支：
+
+?
+1
+git branch version1.0
+此时使用git branch -a命令查看后会有看到有新的version1.0的分支出现了，且master分支前有一个*号，说明目前的操作是在主分支上，使用如下命令切换到version1.0分支上：
+
+?
+1
+2
+3
+git checkout version1.0
+# 切换回主分支
+git checkout master
+当切换到1.0分支后，两个分支各自提交代码是互不影响的，但是显然我们希望能把version1.0修复bug的代码能复制到主分支上，这样主分支也同样修复了这个bug，因此需要使用合并操作，先切换回主分支，然后使用merge命令：
+
+?
+1
+git merge version1.0
+但是合并时可能会出现冲突的情况，这需要自己去逐个解决冲突；
+
+如果要删除分支，使用如下命令：
+
+?
+1
+git branch -D version1.0
+--与远程版本库协作
+
+如果有个远程版本库的地址：https://github.com/test/test.git，则可以使用如下命令将其代码下载到本地：
+
+?
+1
+git clone https://github.com/test/test.git
+下载后可以对其进行一些修改和提交，此时提交的内容仅保存在本地，如果需要将本地的修改的内容同步到远程版本库，则需要借助push命令：
+
+?
+1
+2
+3
+git push origin master
+# 或者
+git push https://github.com/test/test.git master
+如何将远程版本库上的代码同步到本地呢，则需要使用fetch和pull命令：
+
+?
+1
+2
+3
+git fetch origin master
+# 或者
+git fetch https://github.com/test/test.git master
+上述命令将远程代码同步到本地的一个https://github.com/test/test.git/master分支上，并不会合并到如何其他分支上去，此时可以使用diff命令查看远程库修改了哪些东西：
+
+?
+1
+2
+3
+git diff origin/master
+# 或者
+git diff https://github.com/test/test.git/master
+此后如果认为远程库上的修改没有问题，可以使用如下命令合并到本地版本库的分支上：
+
+?
+1
+2
+3
+git merge origin/master
+# 或者
+git merge https://github.com/test/test.git/master
+当然如果你希望直接将远程版本库上的代码同步并合并到本地版本库的主分支上可以直接使用pull命令：
+
+?
+1
+2
+3
+git pull origin/master
+# 或者
+git pull https://github.com/test/test.git/master
+--将本地代码托管到GitHub上
+
+首先请注册GitHub账号，并验证好邮箱，然后创建一个名为test的GitHub仓库；
+
+复制仓库的git地址，例如https://github.com/test/test.git；
+
+打开Git Bash，cd到你要保存远程库的目录，例如C:/github；
+
+使用如下命令将GitHub上的项目保存到本地：
+
+?
+1
+git clone https://github.com/test/test.git
+cd到test目录下，添加一些文件并提交：
+
+?
+1
+2
+3
+echo "abc" > test.txt
+git add .
+git commit -m "first commit"
+然后将本地内容同步到GitHub，会要求输入GitHub的用户名和密码：
+
+?
+1
+2
+3
+git push origin master
+# 或者
+git push https://github.com/test/test.git master
+--SSH连接GitHub
+
+首先确认C:\Users\Administrator\目录下没有.ssh目录，有先删除；
+
+打开GitBash，执行如下命令生成新的SSH密钥keys：
+
+?
+1
+2
+# 最后是你的GitHub邮箱名
+ssh-keygen -t rsa -C "xxx@xxx.com"
+回车后提示存储密钥文件，直接三次回车，使用默认空密码即可；
+
+在GitHub中添加公钥，使用下面的命令将公钥内容复制到剪贴板：
+
+?
+1
+clip < ~/.ssh/id_rsa.pub
+在GitHub的个人设置settings->SSH keys点击Add SSH key，粘贴公钥后点击Add key按钮；
+
+验证SSH连接是否成功，使用如下命令：
+
+?
+1
+ssh -T git@github.com
+回车后有一个警告，输入yes后显示Hi username! You’ve successfully authenticated, but GitHub does not provide shell access.即成功了；
+以后提交代码到GitHub的时候，使用git push githubsshurl，即GitHub仓库提供的SSH的git地址了，不再是之前的https的git地址了；
+
+--创建GitHub的个人主页和项目主页
+
+GitHub的个人主页是用于展示自己的一个网上空间，它使用GitHub提供的免费github.io二级域名访问，项目主页是用于展示GitHub上的项目的一个网上空间，两者都只能是静态网页；
+
+创建个人主页非常简单，只需在GitHub上新建一个名为<username>.github.io的仓库即可，然后在根目录提交一个index.html页面，使用http://<username>github.io/地址即可访问这个主页了；
+
+创建项目主页同样非常简单，只需在项目仓库里新建一个名为gh-pages的分支即可，然后在该分支根目录提交一个index.html页面，使用http://<username>.github.io/repositoryname/地址即可访问这个项目介绍页了；
+
+要注意项目介绍页的gh-pages分支实际是一个没有父分支的分支，它与项目的master主分支完全没有关系；
+
+如果你想进一步丰富你的页面，可以使用经过专门设计的网页或者直接一些免费的网站模板，只是GitHub只支持静态页面要注意；
